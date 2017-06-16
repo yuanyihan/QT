@@ -112,13 +112,15 @@ void Widget::on_pushButton_ser_open_clicked()
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(SerRecv()));
     timer->start(500);
+
     ui->pushButton_ser_open->hide();
     ui->pushButton_ser_scan->hide();
     ui->pushButton_ser_close->show();
     SerEnable=true;
 }
 void Widget::SerRecv()
-{if(SerEnable==true){
+{
+    if(SerEnable==true){
         QByteArray requestDataserialport= my_serialport->readAll();
         if(requestDataserialport!= NULL)
         {
@@ -140,6 +142,7 @@ void Widget::SerRecv()
             else{
                 ui->textBrowser_ser_recv->textCursor().insertText(QString(requestData));//add
             }
+
             ui->textBrowser_ser_recv->moveCursor(QTextCursor::End);
 
         }}
