@@ -183,9 +183,9 @@
      <widget class="QTextBrowser" name="textBrowser_ser_recv">
       <property name="geometry">
        <rect>
-        <x>10</x>
+        <x>60</x>
         <y>20</y>
-        <width>491</width>
+        <width>441</width>
         <height>261</height>
        </rect>
       </property>
