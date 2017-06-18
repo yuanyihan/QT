@@ -10,6 +10,23 @@
 #include "time.h"
 #include <QtNetwork>
 #include <QButtonGroup>
+
+#define COLOR_BLACK QColor(0,0,0)
+
+#define COLOR_GREEN QColor(0,255,0)
+#define COLOR_RED QColor(255,0,0)
+#define COLOR_BLUE QColor(0,0,255)
+
+#define COLOR_YELLOW QColor(255,255,0)
+#define COLOR_MAGENTA QColor(255,0,255)
+#define COLOR_CYAN QColor(0,255,255)
+
+#define NET_TYPE_TCPS 0
+#define NET_TYPE_TCPC 1
+#define NET_TYPE_UDP 2
+#define NET_TYPE_UDPB 3
+
+
 namespace Ui {
 class Widget;
 }
@@ -29,7 +46,10 @@ public:
 private slots:
     void on_pushButton_ser_open_clicked();
     void SerRecv();
-
+    void NetRecv();
+    void fSerSent();
+    void fNetSent();
+    void buttonGroup_netAnyPort(int id);
     void on_pushButton_ser_sent_clicked();
 
     void on_pushButton_ser_close_clicked();
@@ -44,17 +64,53 @@ private slots:
 
     void on_radioButton_ser_recv_hex_clicked();
 
+    void on_pushButton_ser_recv_clear_clicked();
+
+    void on_pushButton_calc_clicked();
+
+    void on_pushButton_SerTimeSent_clicked();
+
+    void on_pushButton_net_scan_clicked();
+
+    void on_comboBox_net_type_currentIndexChanged(int index);
+
+    void on_pushButton_NetTimeSent_clicked();
+
+    void on_pushButton_net_sent_clicked();
+
+    void on_pushButton_net_open_clicked();
+
+    void on_pushButton_net_recv_clear_clicked();
+
+    void on_radioButton_net_sent_ascii_clicked();
+
+    void on_radioButton_net_sent_hex_clicked();
+
+    void on_radioButton_net_recv_ascii_clicked();
+
+    void on_radioButton_net_recv_hex_clicked();
+
 private:
 
     Ui::Widget *ui;
-    QButtonGroup *QButtonGroup_sent_AsciiHex;
-    QButtonGroup *QButtonGroup_recv_AsciiHex;
-    QButtonGroup *QButtonGroup_sent_Utf8Gb23;
-    QButtonGroup *QButtonGroup_recv_Utf8Gb23;
+    QButtonGroup *QButtonGroup_ser_sent_AsciiHex;
+    QButtonGroup *QButtonGroup_ser_recv_AsciiHex;
+    QButtonGroup *QButtonGroup_ser_sent_Utf8Gb23;
+    QButtonGroup *QButtonGroup_ser_recv_Utf8Gb23;
+
+    QButtonGroup *QButtonGroup_net_anyport;
+    QButtonGroup *QButtonGroup_net_sent_AsciiHex;
+    QButtonGroup *QButtonGroup_net_recv_AsciiHex;
+    QButtonGroup *QButtonGroup_net_sent_Utf8Gb23;
+    QButtonGroup *QButtonGroup_net_recv_Utf8Gb23;
     QSerialPort *my_serialport;
-    QByteArray requestData;
-    QTimer *timer;
-    bool SerEnable;
+    QUdpSocket *udpsocket;
+    bool bSerEnable;
+    bool bSerTimerSentEnable;
+    bool bNetEnable ;
+    bool bNetTimerSentEnable;
+    QTimer *serTimerSent;
+    QTimer *netTimerSent;
     QList<int> Aser_baud;
     QStringList Aser_databitsname;
     QList<QSerialPort::DataBits> Aser_dataBits;
@@ -64,6 +120,9 @@ private:
 
     QStringList Aser_parityname;
     QList<QSerialPort::Parity> Aser_parity;
+
+    QStringList Anet_typename;
+    QList<int> Anet_type;
 
 };
 
