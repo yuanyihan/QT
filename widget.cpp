@@ -363,6 +363,7 @@ void Widget::on_radioButton_ser_recv_ascii_clicked()
 
 void Widget::on_radioButton_ser_recv_hex_clicked()
 {
+    //QString
     ui->radioButton_ser_recv_gb2312->setEnabled(false);
     ui->radioButton_ser_recv_utf8->setEnabled(false);
 }
@@ -576,7 +577,8 @@ void Widget::fNetSent(){
 
 }
 void Widget::on_pushButton_net_open_clicked()
-{if(bNetEnable==false){
+{
+    if(bNetEnable==false){
         switch (ui->comboBox_net_type->currentIndex()) {
         case NET_TYPE_UDP:
             bNetEnable=true;
@@ -662,8 +664,6 @@ void Widget::NetRecv()
     QByteArray requestDataNet;
     requestDataNet.clear();
     if(bNetEnable==true){
-        \
-
         while(udpsocket->hasPendingDatagrams()){
             requestDataNet.resize(udpsocket->pendingDatagramSize());
             udpsocket->readDatagram(requestDataNet.data(),requestDataNet.size());
@@ -693,4 +693,9 @@ void Widget::NetRecv()
 
         }}
     requestData.clear();
+}
+void Widget::fNetClose()
+{
+    ui->radioButton_net_recv_gb2312->setEnabled(false);
+    ui->radioButton_net_recv_utf8->setEnabled(false);
 }

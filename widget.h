@@ -36,6 +36,7 @@ class Widget : public QWidget
     Q_OBJECT
 
 public:
+    Ui::Widget *ui;
     explicit Widget(QWidget *parent = 0);
     ~Widget();
     int DataInit();
@@ -49,6 +50,7 @@ private slots:
     void NetRecv();
     void fSerSent();
     void fNetSent();
+    void fNetClose();
     void buttonGroup_netAnyPort(int id);
     void on_pushButton_ser_sent_clicked();
 
@@ -92,7 +94,7 @@ private slots:
 
 private:
 
-    Ui::Widget *ui;
+
     QButtonGroup *QButtonGroup_ser_sent_AsciiHex;
     QButtonGroup *QButtonGroup_ser_recv_AsciiHex;
     QButtonGroup *QButtonGroup_ser_sent_Utf8Gb23;
