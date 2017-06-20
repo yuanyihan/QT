@@ -23,13 +23,15 @@ class Ybase: public QWidget
 {
     Q_OBJECT
 public:
-     Ui::Widget *bui;
+    Ui::Widget *bui;
     explicit Ybase(QWidget *parent = 0);
     void Init();
     static QByteArray ByteUtf8toGb2312(QByteArray ByteUtf8);
     static QByteArray ByteGb2312toUtf8(QByteArray ByteGb2312);
     static QByteArray HexByteArrayToByteArray(QByteArray hexByteArray);
     static QByteArray ByteArrayToHexByteArray(QByteArray byteArray);
+private:
+
 public slots:
     void SlotCalc();
 };

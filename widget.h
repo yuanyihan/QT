@@ -29,15 +29,15 @@ class Widget;
 class Widget : public QWidget
 {
     Q_OBJECT
-public:
-    Ui::Widget *ui;
-    Ybase *ybase;
-    Ynet *ynet;
-    Yser *yser;
+public:  
     explicit Widget(QWidget *parent = 0);
     ~Widget();
 private slots:
 private:
+    Ui::Widget *ui;
+    Ybase *ybase;
+    Ynet *ynet;
+    Yser *yser;
 };
 
 #endif // WIDGET_H

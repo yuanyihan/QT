@@ -53,17 +53,12 @@ void Ynet::Init(){
     QButtonGroup_net_sent_Utf8Gb23->addButton(nui->radioButton_net_sent_utf8);
     nui->radioButton_net_sent_gb2312->setChecked(true);
 
-    QButtonGroup_net_anyport=new QButtonGroup(this);
-    QButtonGroup_net_anyport->setExclusive(true);
-    QButtonGroup_net_anyport->addButton(nui->radioButton_net_localportany);
-    QButtonGroup_net_anyport->addButton(nui->radioButton_net_localportblind);
-    nui->radioButton_net_localportblind->setChecked(true);
-
+    nui->checkBox_net_LocalPortBlind->setChecked(true);
+    //nui->lineEdit_net_LocalPort->setEnabled(false);
     nui->pushButton_NetTimeSent->setText(tr("打开定时发送"));
     nui->lineEdit_NetTimeSent->setText("1000");
     nui->textEdit_net_sent->textCursor().insertText("YYH 袁一涵");
 
-    nui->lineEdit_net_DestIP->setText("127.0.0.1");
     nui->lineEdit_net_DestPort->setText("61000");
     nui->lineEdit_net_LocalPort->setText("62000");
     iNetTypeEnable=NET_TYPE_NULL;
@@ -73,13 +68,19 @@ void Ynet::Init(){
     connect(nui->pushButton_net_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
     connect(nui->pushButton_NetTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
 
-    connect(QButtonGroup_net_anyport,SIGNAL(buttonClicked(int)),this,SLOT(SlotAnyPort()));
+    connect(nui->checkBox_net_LocalPortBlind,SIGNAL(clicked(bool)),this,SLOT(SlotAnyPort()));
 
     connect(nui->comboBox_net_type,SIGNAL(currentIndexChanged(int)),this,SLOT(SlotTypeChanged()));
     connect(QButtonGroup_net_sent_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotSentAsciiHex()));
     connect(QButtonGroup_net_recv_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotRecvAsciiHex()));
     SlotTypeChanged();
     Scan();
+    if(nui->comboBox_net_localIP->count()>1){
+        nui->comboBox_net_localIP->setCurrentIndex(1);
+    }else{
+        nui->comboBox_net_localIP->setCurrentIndex(0);
+    }
+    nui->lineEdit_net_DestIP->setText(nui->comboBox_net_localIP->currentText());
 }
 void Ynet::Scan(){
     int i=0;
@@ -102,13 +103,11 @@ void Ynet::Scan(){
         }
     }
     nui->comboBox_net_localIP->setCurrentIndex(0);
-
 }
 void Ynet::SlotAnyPort(){
-    if(nui->radioButton_net_localportany->isChecked()==true){
+    if(nui->checkBox_net_LocalPortBlind->isChecked()==false){
         nui->lineEdit_net_LocalPort->setEnabled(false);
-    }
-    if(nui->radioButton_net_localportblind->isChecked()==true){
+    }else{
         nui->lineEdit_net_LocalPort->setEnabled(true);
     }
 }
@@ -161,6 +160,7 @@ void Ynet::SlotTimerSet(){
         nui->pushButton_NetTimeSent->setText(tr("打开定时发送"));
         netTimerSent->stop();
         bNetTimerSentEnable=false;
+        qDebug()<<"netTimerSent->stop()";
     }
 }
 void Ynet::Sent(){
@@ -216,6 +216,12 @@ void Ynet::Sent(){
         if(rb == QMessageBox::Yes)
         {
             qDebug()<<"警告!先打开一个Socket";
+            if(bNetTimerSentEnable==true){
+                nui->pushButton_NetTimeSent->setText(tr("打开定时发送"));
+                netTimerSent->stop();
+                bNetTimerSentEnable=false;
+                qDebug()<<"netTimerSent->stop()";
+            }
         }
 
     }
@@ -228,8 +234,9 @@ void Ynet::Open(){
             iNetTypeEnable=nui->comboBox_net_type->currentIndex();
             nui->pushButton_net_open->setText("关闭UDP");
             udpsocket=new QUdpSocket(this);
-            if(nui->radioButton_net_localportblind->isChecked()==true){
-                udpsocket->bind(nui->lineEdit_net_LocalPort->text().toInt());
+            if(nui->checkBox_net_LocalPortBlind->isChecked()==true){
+                udpsocket->bind(nui->lineEdit_net_LocalPort->text().toInt(),QAbstractSocket::ShareAddress|QAbstractSocket::ReuseAddressHint);
+                qDebug() <<"blind: "<<nui->lineEdit_net_LocalPort->text();
             }
             connect(udpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
             break;
@@ -237,8 +244,9 @@ void Ynet::Open(){
             iNetTypeEnable=nui->comboBox_net_type->currentIndex();
             nui->pushButton_net_open->setText("关闭UDP_B");
             udpsocket=new QUdpSocket(this);
-            if(nui->radioButton_net_localportblind->isChecked()==true){
-                udpsocket->bind(nui->lineEdit_net_LocalPort->text().toInt());
+            if(nui->checkBox_net_LocalPortBlind->isChecked()==true){
+                udpsocket->bind(nui->lineEdit_net_LocalPort->text().toInt(),QAbstractSocket::ShareAddress|QAbstractSocket::ReuseAddressHint);
+                qDebug() <<"blind: "<<nui->lineEdit_net_LocalPort->text();
             }
             connect(udpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
             break;
@@ -277,7 +285,7 @@ void Ynet::Recv(){
                     requestData=  Ybase::ByteGb2312toUtf8(requestData);
                 }
             }
-
+            nui->textBrowser_net_recv->setTextColor(COLOR_BLACK);//设置字体颜色：正文黑色
             if(nui->checkBox_net_recv_newline->isChecked()==true){
                 nui->textBrowser_net_recv->append(QString(requestData));//new
             }
@@ -331,9 +339,7 @@ void Ynet::SlotSentAsciiHex(){
     nui->textEdit_net_sent->clear();
     nui->textEdit_net_sent->textCursor().insertText(QString(ByteEDIT));
 }
-void Ynet::SlotSentUtf8Gb2312(){
-    //....//20170619
-}
+
 void Ynet::RecvClear(){
     nui->textBrowser_net_recv->clear();
 }

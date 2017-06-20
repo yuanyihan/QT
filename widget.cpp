@@ -13,13 +13,13 @@
 Widget::Widget(QWidget *parent) : QWidget(parent), ui(new Ui::Widget)
 {
     ui->setupUi(this);
-
+    ui->tabWidget->setCurrentIndex(0);
     yser=new Yser();
     ynet=new Ynet();
     ybase=new Ybase();
     yser->sui = ui;
-ynet->nui=ui;
-ybase->bui=ui;
+    ynet->nui=ui;
+    ybase->bui=ui;
     yser->Init();
     ybase->Init();
     ynet->Init();

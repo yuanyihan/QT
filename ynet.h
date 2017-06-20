@@ -16,6 +16,7 @@
 #define NET_TYPE_UDP 2
 #define NET_TYPE_UDPB 3
 #define NET_TYPE_NULL 4
+
 namespace Ui {
 class Ynet;
 }
@@ -27,25 +28,18 @@ public:
     explicit Ynet(QWidget *parent = 0);
     void Init();
 private:
-    QButtonGroup *QButtonGroup_net_anyport;
+
     QButtonGroup *QButtonGroup_net_sent_AsciiHex;
     QButtonGroup *QButtonGroup_net_recv_AsciiHex;
     QButtonGroup *QButtonGroup_net_sent_Utf8Gb23;
     QButtonGroup *QButtonGroup_net_recv_Utf8Gb23;
-
     QUdpSocket *udpsocket;
-int iNetTypeEnable;
-   // bool bNetEnable ;
+    int iNetTypeEnable;
     bool bNetTimerSentEnable;
-
     QTimer *netTimerSent;
-
-
     QStringList Anet_typename;
     QList<int> Anet_type;
-
-signals:
-
+signals:   
 private slots:
     void Close();
     void SlotAnyPort();
@@ -56,7 +50,6 @@ private slots:
     void Open();
     void SlotSentAsciiHex();
     void SlotRecvAsciiHex();
-    void SlotSentUtf8Gb2312();
     void RecvClear();
     void Recv();
 };

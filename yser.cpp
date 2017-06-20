@@ -83,12 +83,17 @@ void Yser::Init()
     sui->pushButton_SerTimeSent->setText(tr("打开定时发送"));
     sui->lineEdit_SerTimeSent->setText("1000");
     sui->textEdit_ser_sent->textCursor().insertText("YYH 袁一涵");
-Scan();
-connect(sui->pushButton_ser_open,SIGNAL(clicked(bool)),this,SLOT(Open()));
-connect(sui->pushButton_ser_sent,SIGNAL(clicked(bool)),this,SLOT(Sent()));
-connect(sui->pushButton_ser_scan,SIGNAL(clicked(bool)),this,SLOT(Scan()));
-connect(sui->pushButton_ser_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
-connect(sui->pushButton_SerTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
+
+    connect(sui->pushButton_ser_open,SIGNAL(clicked(bool)),this,SLOT(Open()));
+    connect(sui->pushButton_ser_sent,SIGNAL(clicked(bool)),this,SLOT(Sent()));
+    connect(sui->pushButton_ser_scan,SIGNAL(clicked(bool)),this,SLOT(Scan()));
+    connect(sui->pushButton_ser_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
+    connect(sui->pushButton_SerTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
+
+    connect(QButtonGroup_ser_sent_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotSentAsciiHex()));
+    connect(QButtonGroup_ser_recv_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotRecvAsciiHex()));
+
+    Scan();
 }
 void Yser::Scan(){
 
@@ -113,7 +118,7 @@ void Yser::Scan(){
         i++;
     }
     sui->comboBox_ser_com->setCurrentIndex(0);
-    sui->pushButton_ser_open->setText("打开串口");
+    sui->pushButton_ser_open->setText("打开");
 }
 void Yser::Open(){
     if(bSerEnable==false){
@@ -141,21 +146,24 @@ void Yser::Open(){
         my_serialport->setFlowControl(QSerialPort::NoFlowControl);
         connect(my_serialport,SIGNAL(readyRead()),this,SLOT(Recv()));
         qDebug()<<sui->comboBox_ser_com->currentText()<<" "<<sui->comboBox_ser_baud->currentText()<<" "<<Aser_databitsname.at(sui->comboBox_ser_data->currentIndex())<<" "<<Aser_parity.at(sui->comboBox_ser_check->currentIndex())<<" "<<Aser_stopname.at(sui->comboBox_ser_stop->currentIndex());
-        sui->pushButton_ser_open->setText("关闭串口");
+        sui->pushButton_ser_open->setText("关闭");
         bSerEnable=true;
     }
     else{
-      Close();
+        Close();
     }
 }
 void Yser::Recv(){
     QByteArray requestData;
     if(bSerEnable==true){
         QByteArray requestDataserialport= my_serialport->readAll();
+        qDebug()<<"++++"<<requestDataserialport;
         if(requestDataserialport!= NULL)
         {
             if(sui->radioButton_ser_recv_hex->isChecked()==true){
-                requestData=Ybase::ByteArrayToHexByteArray(requestDataserialport);}
+                requestData=Ybase::ByteArrayToHexByteArray(requestDataserialport);
+                qDebug()<<requestData<<"++++"<<requestDataserialport;
+            }
             if(sui->radioButton_ser_recv_ascii->isChecked()==true){
                 requestData=requestDataserialport;
                 if(sui->radioButton_ser_recv_utf8->isChecked()==true){
@@ -178,12 +186,12 @@ void Yser::Recv(){
 }
 void Yser::Close(){
     if(bSerEnable==true){
-    my_serialport->close();
-   qDebug()<<"my_serialport->close()";
+        my_serialport->close();
+        qDebug()<<"my_serialport->close()";
     }else{
     }
     bSerEnable=false;
-    sui->pushButton_ser_open->setText("打开串口");
+    sui->pushButton_ser_open->setText("打开");
 }
 
 void Yser::Sent(){
@@ -223,6 +231,12 @@ void Yser::Sent(){
         if(rb == QMessageBox::Yes)
         {
             qDebug()<<"警告!先打开一个串口";
+            if(bSerTimerSentEnable==true){
+                sui->pushButton_SerTimeSent->setText(tr("打开定时发送"));
+                serTimerSent->stop();
+                bSerTimerSentEnable=false;
+                qDebug()<<"serTimerSent->stop()";
+            }
         }
 
     }
@@ -239,6 +253,7 @@ void Yser::SlotTimerSet(){
         sui->pushButton_SerTimeSent->setText(tr("打开定时发送"));
         serTimerSent->stop();
         bSerTimerSentEnable=false;
+        qDebug()<<"serTimerSent->stop()";
     }
 }
 void Yser::RecvClear(){
@@ -288,8 +303,3 @@ void Yser::SlotSentAsciiHex(){
     sui->textEdit_ser_sent->clear();
     sui->textEdit_ser_sent->textCursor().insertText(QString(ByteEDIT));
 }
-
-void Yser::SlotSentUtf8Gb2312(){
-
-}
-

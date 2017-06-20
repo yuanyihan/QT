@@ -81,7 +81,7 @@ QByteArray Ybase::HexByteArrayToByteArray(QByteArray hexByteArray)
 QByteArray Ybase::ByteArrayToHexByteArray(QByteArray byteArray)
 {
     int i=0;
-    char hexchar[(byteArray.length())*2+1]={0};
+    char hexchar[(byteArray.length())*3+1]={0};
     char *charbytearrey=byteArray.data();
     for(i=0;i<byteArray.length();i++){
         sprintf(hexchar,"%s %02X",hexchar,(unsigned char)*(charbytearrey+i));
@@ -93,5 +93,5 @@ void Ybase::SlotCalc()
     QProcess::startDetached("calc\n");
 }
 void Ybase::Init(){
-   connect(bui->pushButton_calc,SIGNAL(clicked(bool)),this,SLOT(SlotCalc()));
+    connect(bui->pushButton_calc,SIGNAL(clicked(bool)),this,SLOT(SlotCalc()));
 }

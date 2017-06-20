@@ -16,12 +16,12 @@ class Yser;
 class Yser : public QWidget
 {
     Q_OBJECT
-public:
+public: 
     Ui::Widget *sui;
     explicit Yser(QWidget *parent = 0);
     void Init();
-   // friend
 private:
+
     QButtonGroup *QButtonGroup_ser_sent_AsciiHex;
     QButtonGroup *QButtonGroup_ser_recv_AsciiHex;
     QButtonGroup *QButtonGroup_ser_sent_Utf8Gb23;
@@ -39,9 +39,7 @@ private:
 
     QStringList Aser_parityname;
     QList<QSerialPort::Parity> Aser_parity;
-
-signals:
-
+signals:   
 public slots:
 private slots:
     void Close();
@@ -51,7 +49,6 @@ private slots:
     void Open();
     void SlotSentAsciiHex();
     void SlotRecvAsciiHex();
-    void SlotSentUtf8Gb2312();
     void RecvClear();
     void Recv();
 };
