@@ -154,19 +154,6 @@
        <string>扫描串口</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_ser_close">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>150</y>
-        <width>161</width>
-        <height>31</height>
-       </rect>
-      </property>
-      <property name="text">
-       <string>关闭串口</string>
-      </property>
-     </widget>
     </widget>
     <widget class="QGroupBox" name="groupBox_4">
      <property name="geometry">

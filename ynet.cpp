@@ -66,19 +66,24 @@ void Ynet::Init(){
     nui->lineEdit_net_DestIP->setText("127.0.0.1");
     nui->lineEdit_net_DestPort->setText("61000");
     nui->lineEdit_net_LocalPort->setText("62000");
-    Scan();
-    connect(QButtonGroup_net_anyport,SIGNAL(buttonClicked(int)),this,SLOT(SlotAnyPort()));
-    connect(nui->pushButton_net_scan,SIGNAL(clicked(bool)),this,SLOT(Scan()));
-    connect(nui->comboBox_net_type,SIGNAL(currentIndexChanged(int)),this,SLOT(SlotTypeChanged(int)));
-    connect(nui->pushButton_NetTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
-    connect(nui->pushButton_net_sent,SIGNAL(clicked(bool)),this,SLOT(Sent()));
-    connect(nui->pushButton_net_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
+    iNetTypeEnable=NET_TYPE_NULL;
     connect(nui->pushButton_net_open,SIGNAL(clicked(bool)),this,SLOT(Open()));
+    connect(nui->pushButton_net_sent,SIGNAL(clicked(bool)),this,SLOT(Sent()));
+    connect(nui->pushButton_net_scan,SIGNAL(clicked(bool)),this,SLOT(Scan()));
+    connect(nui->pushButton_net_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
+    connect(nui->pushButton_NetTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
+
+    connect(QButtonGroup_net_anyport,SIGNAL(buttonClicked(int)),this,SLOT(SlotAnyPort()));
+
+    connect(nui->comboBox_net_type,SIGNAL(currentIndexChanged(int)),this,SLOT(SlotTypeChanged()));
     connect(QButtonGroup_net_sent_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotSentAsciiHex()));
     connect(QButtonGroup_net_recv_AsciiHex,SIGNAL(buttonClicked(int)),this,SLOT(SlotRecvAsciiHex()));
+    SlotTypeChanged();
+    Scan();
 }
 void Ynet::Scan(){
     int i=0;
+    Close();
     QHostAddress HOSTaddress;
     QString localHostName = QHostInfo::localHostName();
 
@@ -97,7 +102,7 @@ void Ynet::Scan(){
         }
     }
     nui->comboBox_net_localIP->setCurrentIndex(0);
-    Close();
+
 }
 void Ynet::SlotAnyPort(){
     if(nui->radioButton_net_localportany->isChecked()==true){
@@ -108,13 +113,18 @@ void Ynet::SlotAnyPort(){
     }
 }
 void Ynet::Close(){
-    bNetEnable=false;
-    //udpsocket->close();
+    if(iNetTypeEnable!=NET_TYPE_NULL){
+        //udpsocket->close();
+        qDebug() <<"Close: "<<Anet_typename.at(iNetTypeEnable);
+    }
+    iNetTypeEnable=NET_TYPE_NULL;
     nui->pushButton_net_open->setText("打开");
 }
-void Ynet::SlotTypeChanged(int index){
+void Ynet::SlotTypeChanged(){
+
+    int index;
     Close();
-    nui->pushButton_net_open->setText("打开");
+    index=nui->comboBox_net_type->currentIndex();
     switch (index) {
     case NET_TYPE_TCPS://
         nui->lineEdit_net_DestIP->setEnabled(false);
@@ -123,7 +133,6 @@ void Ynet::SlotTypeChanged(int index){
     case NET_TYPE_TCPC://
         nui->lineEdit_net_DestIP->setEnabled(true);
         nui->lineEdit_net_DestPort->setEnabled(true);
-
         break;
     case NET_TYPE_UDP://
         nui->lineEdit_net_DestIP->setEnabled(true);
@@ -155,7 +164,7 @@ void Ynet::SlotTimerSet(){
     }
 }
 void Ynet::Sent(){
-    if(bNetEnable==true){
+    if(iNetTypeEnable!=NET_TYPE_NULL){
         QByteArray ByteSent;
         QByteArray Bytetextedit = nui->textEdit_net_sent->toPlainText().toUtf8();
 
@@ -181,7 +190,7 @@ void Ynet::Sent(){
 
         QHostAddress sentAddress;
 
-        switch (nui->comboBox_net_type->currentIndex()) {
+        switch (iNetTypeEnable) {
         case NET_TYPE_UDP :
             //向特定IP发送
             sentAddress = QHostAddress(nui->lineEdit_net_DestIP->text());
@@ -213,10 +222,10 @@ void Ynet::Sent(){
 }
 void Ynet::Open(){
 
-    if(bNetEnable==false){
+    if(iNetTypeEnable==NET_TYPE_NULL){
         switch (nui->comboBox_net_type->currentIndex()) {
         case NET_TYPE_UDP:
-            bNetEnable=true;
+            iNetTypeEnable=nui->comboBox_net_type->currentIndex();
             nui->pushButton_net_open->setText("关闭UDP");
             udpsocket=new QUdpSocket(this);
             if(nui->radioButton_net_localportblind->isChecked()==true){
@@ -225,7 +234,7 @@ void Ynet::Open(){
             connect(udpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
             break;
         case NET_TYPE_UDPB:
-            bNetEnable=true;
+            iNetTypeEnable=nui->comboBox_net_type->currentIndex();
             nui->pushButton_net_open->setText("关闭UDP_B");
             udpsocket=new QUdpSocket(this);
             if(nui->radioButton_net_localportblind->isChecked()==true){
@@ -236,6 +245,11 @@ void Ynet::Open(){
         default:
             break;
         }
+        if(iNetTypeEnable==NET_TYPE_NULL){
+            qDebug() <<"Open: "<<"ERROR!!";
+        }
+        else{
+            qDebug() <<"Open: "<<Anet_typename.at(iNetTypeEnable);}
     }else{
         Close();
 
@@ -245,7 +259,7 @@ void Ynet::Recv(){
     QByteArray requestData;
     QByteArray requestDataNet;
     requestDataNet.clear();
-    if(bNetEnable==true){
+    if(iNetTypeEnable!=NET_TYPE_NULL){
         while(udpsocket->hasPendingDatagrams()){
             requestDataNet.resize(udpsocket->pendingDatagramSize());
             udpsocket->readDatagram(requestDataNet.data(),requestDataNet.size());

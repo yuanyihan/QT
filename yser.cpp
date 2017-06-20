@@ -85,13 +85,15 @@ void Yser::Init()
     sui->textEdit_ser_sent->textCursor().insertText("YYH 袁一涵");
 Scan();
 connect(sui->pushButton_ser_open,SIGNAL(clicked(bool)),this,SLOT(Open()));
-connect(sui->pushButton_ser_close,SIGNAL(clicked(bool)),this,SLOT(Close()));
+connect(sui->pushButton_ser_sent,SIGNAL(clicked(bool)),this,SLOT(Sent()));
+connect(sui->pushButton_ser_scan,SIGNAL(clicked(bool)),this,SLOT(Scan()));
+connect(sui->pushButton_ser_recv_clear,SIGNAL(clicked(bool)),this,SLOT(RecvClear()));
+connect(sui->pushButton_SerTimeSent,SIGNAL(clicked(bool)),this,SLOT(SlotTimerSet()));
 }
-
-
 void Yser::Scan(){
 
     int i=0;
+    Close();
     sui->comboBox_ser_com->clear();
     foreach (const QSerialPortInfo &info, QSerialPortInfo::availablePorts())
     {
@@ -111,40 +113,40 @@ void Yser::Scan(){
         i++;
     }
     sui->comboBox_ser_com->setCurrentIndex(0);
-    sui->pushButton_ser_open->show();
-    sui->pushButton_ser_scan->show();
-    sui->pushButton_ser_close->hide();
-    bSerEnable=false;
-
+    sui->pushButton_ser_open->setText("打开串口");
 }
 void Yser::Open(){
-    my_serialport= new QSerialPort();
-    qDebug()<<sui->comboBox_ser_com->currentText();
-    my_serialport->setPortName(sui->comboBox_ser_com->currentText());
-    my_serialport->open(QIODevice::ReadWrite);
+    if(bSerEnable==false){
+        my_serialport= new QSerialPort();
+        //qDebug()<<sui->comboBox_ser_com->currentText();
+        my_serialport->setPortName(sui->comboBox_ser_com->currentText());
+        my_serialport->open(QIODevice::ReadWrite);
 
-    qDebug()<<sui->comboBox_ser_baud->currentText().toInt();
-    my_serialport->setBaudRate(sui->comboBox_ser_baud->currentText().toInt());
+        //qDebug()<<sui->comboBox_ser_baud->currentText().toInt();
+        my_serialport->setBaudRate(sui->comboBox_ser_baud->currentText().toInt());
 
-    qDebug()<<sui->comboBox_ser_data->currentIndex();
-    qDebug()<<Aser_databitsname.at(sui->comboBox_ser_data->currentIndex());
-    my_serialport->setDataBits(Aser_dataBits.at(sui->comboBox_ser_data->currentIndex()));
+        //qDebug()<<sui->comboBox_ser_data->currentIndex();
+        //qDebug()<<Aser_databitsname.at(sui->comboBox_ser_data->currentIndex());
+        my_serialport->setDataBits(Aser_dataBits.at(sui->comboBox_ser_data->currentIndex()));
 
-    qDebug()<<sui->comboBox_ser_check->currentIndex();
-    qDebug()<<Aser_parity.at(sui->comboBox_ser_check->currentIndex());
-    my_serialport->setParity(Aser_parity.at(sui->comboBox_ser_check->currentIndex()));
+        //qDebug()<<sui->comboBox_ser_check->currentIndex();
+        //qDebug()<<Aser_parity.at(sui->comboBox_ser_check->currentIndex());
+        my_serialport->setParity(Aser_parity.at(sui->comboBox_ser_check->currentIndex()));
 
-    qDebug()<<sui->comboBox_ser_stop->currentIndex();
-    qDebug()<<Aser_stopname.at(sui->comboBox_ser_stop->currentIndex());
-    my_serialport->setStopBits(Aser_stop.at(sui->comboBox_ser_stop->currentIndex()));
+        //qDebug()<<sui->comboBox_ser_stop->currentIndex();
+        //qDebug()<<Aser_stopname.at(sui->comboBox_ser_stop->currentIndex());
 
-    my_serialport->setFlowControl(QSerialPort::NoFlowControl);
-    connect(my_serialport,SIGNAL(readyRead()),this,SLOT(Recv()));
-    sui->pushButton_ser_open->hide();
-    sui->pushButton_ser_scan->hide();
-    sui->pushButton_ser_close->show();
-    bSerEnable=true;
+        my_serialport->setStopBits(Aser_stop.at(sui->comboBox_ser_stop->currentIndex()));
 
+        my_serialport->setFlowControl(QSerialPort::NoFlowControl);
+        connect(my_serialport,SIGNAL(readyRead()),this,SLOT(Recv()));
+        qDebug()<<sui->comboBox_ser_com->currentText()<<" "<<sui->comboBox_ser_baud->currentText()<<" "<<Aser_databitsname.at(sui->comboBox_ser_data->currentIndex())<<" "<<Aser_parity.at(sui->comboBox_ser_check->currentIndex())<<" "<<Aser_stopname.at(sui->comboBox_ser_stop->currentIndex());
+        sui->pushButton_ser_open->setText("关闭串口");
+        bSerEnable=true;
+    }
+    else{
+      Close();
+    }
 }
 void Yser::Recv(){
     QByteArray requestData;
@@ -175,13 +177,13 @@ void Yser::Recv(){
     requestData.clear();
 }
 void Yser::Close(){
+    if(bSerEnable==true){
     my_serialport->close();
+   qDebug()<<"my_serialport->close()";
+    }else{
+    }
     bSerEnable=false;
-    Scan();
-    sui->pushButton_ser_open->show();
-    sui->pushButton_ser_scan->show();
-    sui->pushButton_ser_close->hide();
-    bSerEnable=true;
+    sui->pushButton_ser_open->setText("打开串口");
 }
 
 void Yser::Sent(){

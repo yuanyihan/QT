@@ -15,6 +15,7 @@
 #define NET_TYPE_TCPC 1
 #define NET_TYPE_UDP 2
 #define NET_TYPE_UDPB 3
+#define NET_TYPE_NULL 4
 namespace Ui {
 class Ynet;
 }
@@ -33,8 +34,8 @@ private:
     QButtonGroup *QButtonGroup_net_recv_Utf8Gb23;
 
     QUdpSocket *udpsocket;
-
-    bool bNetEnable ;
+int iNetTypeEnable;
+   // bool bNetEnable ;
     bool bNetTimerSentEnable;
 
     QTimer *netTimerSent;
@@ -49,7 +50,7 @@ private slots:
     void Close();
     void SlotAnyPort();
     void Scan();
-    void SlotTypeChanged(int index);
+    void SlotTypeChanged();
     void SlotTimerSet();
     void Sent();
     void Open();
