@@ -34,6 +34,12 @@ private:
     QButtonGroup *QButtonGroup_net_sent_Utf8Gb23;
     QButtonGroup *QButtonGroup_net_recv_Utf8Gb23;
     QUdpSocket *udpsocket;
+    QTcpSocket *tcpsocket;
+    QTcpServer *tcpserver;
+
+    QHostAddress netAddrNow;
+    quint16 netPortNow;
+
     int iNetTypeEnable;
     bool bNetTimerSentEnable;
     QTimer *netTimerSent;
@@ -52,6 +58,7 @@ private slots:
     void SlotRecvAsciiHex();
     void RecvClear();
     void Recv();
+    void TcpNewConnection();
 };
 
 #endif // YNET_H
