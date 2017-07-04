@@ -13,10 +13,11 @@
 
 #define NET_TYPE_TCPS 0
 #define NET_TYPE_TCPC 1
-#define NET_TYPE_UDP 2
+#define NET_TYPE_UDP  2
 #define NET_TYPE_UDPB 3
 #define NET_TYPE_NULL 4
-
+//#define NET_TYPE_TCPS_LISTEN     5
+//#define NET_TYPE_TCPC_CONNECTING 6
 namespace Ui {
 class Ynet;
 }

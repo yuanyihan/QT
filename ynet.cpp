@@ -109,18 +109,18 @@ void Ynet::SlotAnyPort(){
 }
 void Ynet::Close(){
     if(iNetTypeEnable!=NET_TYPE_NULL){
-        //NET_TYPE
-
         switch (iNetTypeEnable) {
-        case NET_TYPE_TCPS://
+        //case NET_TYPE_TCPS_LISTEN:
 
+        case NET_TYPE_TCPS://
             qDebug() <<"TCPS Disconnect:"<<tcpsocket->peerAddress().toString()<<":"<<QString::number(tcpsocket->peerPort());
-        tcpsocket->disconnectFromHost();
+            tcpsocket->disconnectFromHost();
             tcpserver->deleteLater();
             tcpsocket->deleteLater();
+            disconnect(tcpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
             break;
         case NET_TYPE_TCPC://
-
+            //case NET_TYPE_TCPC_CONNECTING:
             qDebug() <<"TCPC Disconnect:"<<tcpsocket->peerAddress().toString()<<":"<<QString::number(tcpsocket->peerPort());
             tcpsocket->disconnect();
             tcpsocket->deleteLater();
@@ -141,7 +141,8 @@ void Ynet::Close(){
     }
     iNetTypeEnable=NET_TYPE_NULL;
     nui->pushButton_net_open->setText("打开");
-
+    netAddrNow=NULL;
+    netPortNow=0;
 
 }
 void Ynet::SlotTypeChanged(){
@@ -271,8 +272,10 @@ void Ynet::Sent(){
     }
 }
 void Ynet::Open(){
-
-    if(iNetTypeEnable==NET_TYPE_NULL){
+    static bool FlagOpenClose=true;
+    netAddrNow=NULL;
+    netPortNow=0;
+    if((FlagOpenClose==true)){
         switch (nui->comboBox_net_type->currentIndex()) {
         case NET_TYPE_UDP:
             iNetTypeEnable=nui->comboBox_net_type->currentIndex();
@@ -283,6 +286,8 @@ void Ynet::Open(){
                 qDebug() <<"blind: "<<nui->lineEdit_net_LocalPort->text();
             }
             connect(udpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
+            FlagOpenClose=false;
+            qDebug() <<"Open: "<<Anet_typename.at(iNetTypeEnable);
             break;
         case NET_TYPE_UDPB:
             iNetTypeEnable=nui->comboBox_net_type->currentIndex();
@@ -293,35 +298,37 @@ void Ynet::Open(){
                 qDebug() <<"blind: "<<nui->lineEdit_net_LocalPort->text();
             }
             connect(udpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
+            FlagOpenClose=false;
+            qDebug() <<"Open: "<<Anet_typename.at(iNetTypeEnable);
             break;
         case NET_TYPE_TCPC://
             //iNetTypeEnable=nui->comboBox_net_type->currentIndex();
-
             tcpsocket=new QTcpSocket(this);
             tcpsocket->abort(); //取消已有的连接
             tcpsocket->connectToHost(nui->lineEdit_net_DestIP->text(),nui->lineEdit_net_DestPort->text().toInt());
 
             connect(tcpsocket,SIGNAL(connected()),this,SLOT(TcpNewConnection()));
-
+            FlagOpenClose=false;
+            //qDebug() <<"Open: "<<Anet_typename.at(iNetTypeEnable);
             break;
         case NET_TYPE_TCPS:
-
-            nui->pushButton_net_open->setText("监听TCPS");
+            nui->pushButton_net_open->setText("监听中...");
             tcpserver=new QTcpServer(this);
             tcpserver->listen(QHostAddress::Any,nui->lineEdit_net_LocalPort->text().toInt());
 
             qDebug() <<"listen: "<<nui->lineEdit_net_LocalPort->text();
             connect(tcpserver,SIGNAL(newConnection()),this,SLOT(TcpNewConnection()));
+            FlagOpenClose=false;
             break;
         default:
             break;
         }
         if(iNetTypeEnable==NET_TYPE_NULL){}
         else{
-            qDebug() <<"Open: "<<Anet_typename.at(iNetTypeEnable);}
+        }
     }else{
         Close();
-
+        FlagOpenClose=true;
     }
 }
 void Ynet::TcpNewConnection(){
@@ -334,17 +341,27 @@ void Ynet::TcpNewConnection(){
         break;
     case NET_TYPE_TCPS :
         tcpsocket=tcpserver->nextPendingConnection();
-        qDebug()<<"disconnected()),tcpsocket,SLOT(deleteLater()";
-        tcpsocket->
-                connect(tcpsocket,SIGNAL(disconnected()),this,SLOT(Close()));
+        // tcpsocket->
+        //         connect(tcpsocket,SIGNAL(disconnected()),this,SLOT(Close()));
         connect(tcpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
         iNetTypeEnable=nui->comboBox_net_type->currentIndex();
         nui->pushButton_net_open->setText("关闭TCPS");
+
+
+        if(nui->checkBox_net_DestFollow->isChecked()==true){
+            QHostAddress netAddrTemp;
+            netAddrTemp.setAddress(tcpsocket->peerAddress().toIPv4Address());
+            nui->lineEdit_net_DestIP->setText(netAddrTemp.toString());
+            nui->lineEdit_net_DestPort->setText(QString::number(tcpsocket->peerPort()));
+        }
+
+
+
         break;
     case NET_TYPE_TCPC :
         iNetTypeEnable=nui->comboBox_net_type->currentIndex();
         connect(tcpsocket,SIGNAL(readyRead()),this,SLOT(Recv()));
-         nui->pushButton_net_open->setText("关闭TCPC");
+        nui->pushButton_net_open->setText("关闭TCPC");
         break;
     default:
         break;
@@ -359,6 +376,9 @@ void Ynet::TcpNewConnection(){
 void Ynet::Recv(){
     QByteArray requestData;
     QByteArray requestDataNet;
+    QHostAddress netAddrTemp;
+    quint16 netPortTemp;
+
     requestDataNet.clear();
     if(iNetTypeEnable!=NET_TYPE_NULL){
 
@@ -367,26 +387,51 @@ void Ynet::Recv(){
         switch (index) {
         case NET_TYPE_TCPS://
         case NET_TYPE_TCPC://
+
             requestDataNet= tcpsocket->readAll();
-            if((netAddrNow!=tcpsocket->peerAddress())||(netPortNow!=tcpsocket->peerPort())){
-                netAddrNow=tcpsocket->peerAddress();
+            if((netAddrNow.toIPv4Address()!=tcpsocket->peerAddress().toIPv4Address())||(netPortNow!=tcpsocket->peerPort())){
+                //netAddrNow=tcpsocket->peerAddress();
+                netAddrNow.setAddress(tcpsocket->peerAddress().toIPv4Address());
                 netPortNow=tcpsocket->peerPort();
                 nui->textBrowser_net_recv->setTextColor(COLOR_RED);//设置字体颜色
-                char buf[1000]={0};
-                sprintf(buf,"\n[%s#%s:%d]\n",tcpsocket->peerName().toUtf8().data(),tcpsocket->peerAddress().toString().toUtf8().data(),tcpsocket->peerPort());
+                char buf[100]={0};
+                sprintf(buf,"\n[%s:%d]\n",netAddrNow.toString().toUtf8().data(),netPortNow);
                 //nui->textBrowser_net_recv->textCursor().insertText(QString(requestData));//add
                 //sprintf()
+                qDebug()<<"调试：：："<<buf;
                 nui->textBrowser_net_recv->insertPlainText(QString("%1").arg(buf));
+            }
+            if(nui->checkBox_net_DestFollow->isChecked()==true){
+                nui->lineEdit_net_DestIP->setText(netAddrNow.toString());
+                nui->lineEdit_net_DestPort->setText(QString::number(netPortNow));
             }
             break;
         case NET_TYPE_UDP://
         case NET_TYPE_UDPB://
+
+
             while(udpsocket->hasPendingDatagrams()){
                 requestDataNet.resize(udpsocket->pendingDatagramSize());
-                udpsocket->readDatagram(requestDataNet.data(),requestDataNet.size());
-
-
+                udpsocket->readDatagram(requestDataNet.data(),requestDataNet.size(),&netAddrTemp,&netPortTemp);
             }
+            if((netAddrNow.toIPv4Address()!=netAddrTemp.toIPv4Address())||(netPortNow!=netPortTemp))
+            {
+                netAddrNow.setAddress(netAddrTemp.toIPv4Address());
+                netPortNow=netPortTemp;
+                nui->textBrowser_net_recv->setTextColor(COLOR_RED);//设置字体颜色
+                char buf[100]={0};
+                sprintf(buf,"\n[%s:%d]\n",netAddrNow.toString().toUtf8().data(),netPortNow);
+                //nui->textBrowser_net_recv->textCursor().insertText(QString(requestData));//add
+                //sprintf()
+                qDebug()<<"调试：：："<<buf;
+                nui->textBrowser_net_recv->insertPlainText(QString("%1").arg(buf));
+            }
+            if(nui->checkBox_net_DestFollow->isChecked()==true){
+                nui->lineEdit_net_DestIP->setText(netAddrNow.toString());
+                nui->lineEdit_net_DestPort->setText(QString::number(netPortNow));
+            }
+
+
             break;
         default:
             break;
